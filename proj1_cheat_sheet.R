@@ -64,6 +64,7 @@ head_data <- head(southwest_data,1)
 #----------------Data based on SRType SANITATION------------
 # Take only HCD-Sanitation Property with status CLOSED
 srtype_sanit <- filter(data_311, SRType == "HCD-Sanitation Property" & SRStatus == "CLOSED")
+summary(srtype_sanit)
 
 # Calculate time take
 createdDate <- mdy_hms(srtype_sanit$CreatedDate, tz = "America/New_York")
@@ -75,9 +76,11 @@ srtype_sanit$TimeTaken <- TimeTaken
 srtype_sanit$createdDay = weekdays(createdDate)
 srtype_sanit$StatusDay = weekdays(statusDate)
 
-glimpse(srtype_sanit)
+names(srtype_sanit)
 summary(srtype_sanit) 
 nrow(srtype_sanit)    # --150769
+
+# data_311 %>% filter(SRType == "HCD-Sanitation Property") %>% group_by(Neighborhood) %>% summarise(Count = n())
 
 
 #-------set max print options-----------
@@ -148,18 +151,69 @@ summary(srtype_sanit$Outcome)
 
 #-----------------Things to do--------------------
 # For a specific SRType, 
-# perform TimeTaken ~ Neighborhood + ZipCode + MethodReceived
+# perform TimeTaken ~ Neighborhood + ZipCode + MethodReceived + CreatedDay
+# Create a table of top 10 service calls
 
 # perform SRType ~ Neighborhood + DayOfWeek
 
+#-----------------Predict time taken--------------------
+# perform TimeTaken ~ Neighborhood + MethodReceived + CreatedDay
+sanit_var <- c("TimeTaken","Neighborhood","MethodReceived","createdDay")
+sanit_table <- srtype_sanit[sanit_var]
+glimpse(sanit_table)
 
+set.seed(1324)
+TrainIndex = sample(1:nrow(sanit_table), round(0.75 * nrow(sanit_table)))
+sanit_table_train = sanit_table[TrainIndex, ]
+sanit_table_test = sanit_table[-TrainIndex, ]
 
+# Things doing currently
+TimeTakenModel <- glm(TimeTaken ~ factor(Neighborhood)
+                      + factor(MethodReceived) 
+                      + factor(createdDay), data=sanit_table_train)
+summary(TimeTakenModel)
 
+TimeTakenModel <- lm(TimeTaken ~ Neighborhood
+                      + MethodReceived 
+                      + createdDay, data=sanit_table_train)
 
+summary(TimeTakenModel)
 
+summary(sanit_table$createdDay)
 
+typeof(sanit_table$TimeTaken)
 
+TimeTakenModel.res = resid(TimeTakenModel)
 
+# plot(sanit_table$Neighborhood, TimeTakenModel.res, ylab = "Residuals", xlab = "Neighborhood", main = "Residual Plot" )
 
+ggplot(data = sanit_table, mapping = aes(x = TimeTaken)) +
+  geom_histogram(aes(fill = createdDay), color = "white", bins = 15) +
+  facet_wrap(~createdDay, nrow = 7) +
+  labs(title = "Distribution of TimeTaken by createdDay", x = "TimeTaken", y = "Total time taken") +
+  theme_light()
 
+# Plot Number of service requested per day
+ggplot(sanit_table, aes(createdDay)) + geom_bar()
+
+# #----------TimeTaken Model by Neighbordhood---------
+# ttModel_hood <- lm(TimeTaken ~ Neighborhood, data = sanit_table)
+# summary(ttModel_hood)
+# 
+# #----------TimeTaken and Neighborhood only---------
+# hood_tt_var <- c("TimeTaken","Neighborhood")
+# hood_tt_data <- srtype_sanit[hood_tt_var]
+# 
+# hood_tt_avg <- hood_tt_data %>% group_by(Neighborhood) %>% summarise(AvgTimeTaken = mean(TimeTaken))
+# 
+# nrow(hood_tt_avg)
+# 
+# length(unique(sanit_table$Neighborhood))
+# 
+# glimpse(hood_tt_avg)
+# 
+# hood_tt_model <- glm(AvgTimeTaken ~ factor(Neighborhood), data = hood_tt_avg)
+# summary(hood_tt_model)
+# 
+# ggplot(hood_tt_avg) + geom_bar()
 
