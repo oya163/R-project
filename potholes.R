@@ -123,4 +123,24 @@ ggplot(pot_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest Frequency neighborhood for potholes') +
-  scale_y_continuous(limits = c(0,600)) 
+  scale_y_continuous(limits = c(0,600))
+
+
+#-----------After dataset creation------------
+library(MASS)
+pot_data <- read_excel('Population_By_Neighborhood.xlsx', sheet = 'pot_table')
+names(pot_data)
+
+pot_model_all <- lm(TimeTaken~Population + White + 
+                        Blk_AfAm + Pop_dens + Housing + 
+                        Occupied + Vacant , data = pot_data)
+summary(pot_model_all)
+
+pot_model_pop <- lm(TimeTaken~Population, data = pot_data)
+summary(pot_model_pop)
+
+pot_model_black <- lm(TimeTaken~Blk_AfAm, data = pot_data)
+summary(pot_model_black)
+
+pot_model_white <- lm(TimeTaken~White, data = pot_data)
+summary(pot_model_white)
