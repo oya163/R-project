@@ -1,3 +1,6 @@
+# NOTE
+# analysis for income, normalize by population
+
 #############################
 # Author - Oyesh Mann Singh
 # Dataset - 311_Customer_Service_Request
@@ -32,7 +35,9 @@ data_311 <- data_311[ grep("SW-Bulk-Scheduled", data_311$SRType, invert = TRUE) 
 
 high_freq_srtype <- data.frame(data_311 %>% group_by(data_311$SRType) %>% tally())
 high_freq_srtype_order <- high_freq_srtype[order(-high_freq_srtype$n),]
-head(high_freq_srtype_order,n = 10)
+head(high_freq_srtype_order,n = 20)
+
+
 
 #------------------SORT---------------------
 high_freq_srtype[order(-high_freq_srtype$n),]
@@ -59,29 +64,6 @@ southwest_data = subset(data_311$GeoLocation, data_311$Neighborhood == "SOUTHWES
 glimpse(southwest_data)
 head(southwest_data,n=1)
 head_data <- head(southwest_data,1)
-
-
-#----------------Data based on SRType SANITATION------------
-# Take only HCD-Sanitation Property with status CLOSED
-srtype_sanit <- filter(data_311, SRType == "HCD-Sanitation Property" & SRStatus == "CLOSED")
-summary(srtype_sanit)
-
-# Calculate time take
-createdDate <- mdy_hms(srtype_sanit$CreatedDate, tz = "America/New_York")
-statusDate <- mdy_hms(srtype_sanit$StatusDate, tz = "America/New_York")
-TimeTaken = interval(createdDate, statusDate)/dminutes()    # interval in minutes
-
-srtype_sanit$TimeTaken <- TimeTaken
-
-srtype_sanit$createdDay = weekdays(createdDate)
-srtype_sanit$StatusDay = weekdays(statusDate)
-
-names(srtype_sanit)
-summary(srtype_sanit) 
-nrow(srtype_sanit)    # --150769
-
-# data_311 %>% filter(SRType == "HCD-Sanitation Property") %>% group_by(Neighborhood) %>% summarise(Count = n())
-
 
 #-------set max print options-----------
 options(max.print=1000)
@@ -156,30 +138,72 @@ summary(srtype_sanit$Outcome)
 
 # perform SRType ~ Neighborhood + DayOfWeek
 
+
+#----------------Data based on SRType SANITATION------------
+# Take only HCD-Sanitation Property with status CLOSED
+srtype_sanit <- filter(data_311, SRType == "HCD-Sanitation Property" & SRStatus == "CLOSED")
+summary(srtype_sanit)
+
+# Calculate time take
+createdDate <- mdy_hms(srtype_sanit$CreatedDate, tz = "America/New_York")
+statusDate <- mdy_hms(srtype_sanit$StatusDate, tz = "America/New_York")
+TimeTaken = interval(createdDate, statusDate)/dminutes()    # interval in minutes
+
+srtype_sanit$TimeTaken <- TimeTaken
+
+#srtype_sanit$createdDay = weekdays(createdDate)
+#srtype_sanit$StatusDay = weekdays(statusDate)
+
+names(srtype_sanit)
+summary(srtype_sanit) 
+nrow(srtype_sanit)    # --150769
+
+# data_311 %>% filter(SRType == "HCD-Sanitation Property") %>% group_by(Neighborhood) %>% summarise(Count = n())
+
 #-----------------Predict time taken--------------------
 # perform TimeTaken ~ Neighborhood + MethodReceived + CreatedDay
-sanit_var <- c("TimeTaken","Neighborhood","MethodReceived","createdDay")
+# sanit_var <- c("TimeTaken","Neighborhood","MethodReceived","createdDay")
+sanit_var <- c("TimeTaken","Neighborhood")
 sanit_table <- srtype_sanit[sanit_var]
 glimpse(sanit_table)
 
-set.seed(1324)
-TrainIndex = sample(1:nrow(sanit_table), round(0.75 * nrow(sanit_table)))
-sanit_table_train = sanit_table[TrainIndex, ]
-sanit_table_test = sanit_table[-TrainIndex, ]
+# Convert createdDay to integer type
+#days_level = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+#days_factor = factor(sanit_table$createdDay, levels = days_level, ordered = TRUE)
+#sanit_table = sanit_table %>% mutate(DayOfWeek = as.integer(days_factor))
+
+
+# Convert MethodReceived to integer type
+#methods_level = c("Phone", "Mobile Apps", "Internet", "In House", "Interface", "E-Mail", "Other","Walk In")
+#methods_factor = factor(sanit_table$MethodReceived, levels = methods_level, ordered = TRUE)
+#sanit_table = sanit_table %>% mutate(MethodsNumeric = as.integer(methods_factor))
+
+glimpse(sanit_table)
+
+#ttmodel_weekday <- lm(TimeTaken ~ factor(createdDay), data = sanit_table) %>% summary(ttmodel_weekday)
+
+#set.seed(1324)
+#TrainIndex = sample(1:nrow(sanit_table), round(0.75 * nrow(sanit_table)))
+#sanit_table_train = sanit_table[TrainIndex, ]
+#sanit_table_test = sanit_table[-TrainIndex, ]
 
 # Things doing currently
-TimeTakenModel <- glm(TimeTaken ~ factor(Neighborhood)
-                      + factor(MethodReceived) 
-                      + factor(createdDay), data=sanit_table_train)
-summary(TimeTakenModel)
+#imeTakenModel_glm <- glm(TimeTaken ~ Neighborhood
+#                      + MethodReceived 
+#                      + createdDay, data=sanit_table_train)
+#summary(TimeTakenModel_glm)
 
-TimeTakenModel <- lm(TimeTaken ~ Neighborhood
-                      + MethodReceived 
-                      + createdDay, data=sanit_table_train)
+#coef(TimeTakenModel_glm) %>% tail()
 
-summary(TimeTakenModel)
+TimeTakenModel_lm <- lm(TimeTaken ~ Neighborhood, data=sanit_table)
+
+summary(TimeTakenModel_lm)
+coef(TimeTakenModel_lm)
 
 summary(sanit_table$createdDay)
+typeof(sanit_table$createdDay)
+typeof(sanit_table$Neighborhood)
+
 
 typeof(sanit_table$TimeTaken)
 
@@ -216,4 +240,6 @@ ggplot(sanit_table, aes(createdDay)) + geom_bar()
 # summary(hood_tt_model)
 # 
 # ggplot(hood_tt_avg) + geom_bar()
+
+
 
