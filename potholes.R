@@ -144,3 +144,25 @@ summary(pot_model_black)
 
 pot_model_white <- lm(TimeTaken~White, data = pot_data)
 summary(pot_model_white)
+
+#-----------Cross validation-------------------
+library(caret)
+
+# Shuffle data
+pot_dataset <- data.frame(pot_data[sample(1:nrow(pot_data)),])
+glimpse(pot_dataset)
+
+pot_dataset$normal_pop <- scale(pot_dataset[3], center = TRUE, scale = TRUE)
+pot_dataset$normal_white <- scale(pot_dataset[4], center = TRUE, scale = TRUE)
+pot_dataset$normal_black <- scale(pot_dataset[5], center = TRUE, scale = TRUE)
+glimpse(pot_dataset)
+
+ggplot(data = pot_dataset, mapping = aes(x = normal_white, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Population vs TimeTaken White", y = "TimeTaken", x = "White population") + 
+  theme_light()
+
+ggplot(data = pot_dataset, mapping = aes(x = normal_black, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Black population") + 
+  theme_light()
