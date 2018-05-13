@@ -189,8 +189,8 @@ head(cleaning_data)
 names(cleaning_data)
 cor(cleaning_data[8:11])
 
-test_data <- subset(cleaning_data, select = c(8,9,10,11))
-cor(test_data)
+test_cleaning_data <- subset(cleaning_data, select = c(8,9,10,11))
+cor(test_cleaning_data)
 
 
 #------------MODEL CREATION---------------
