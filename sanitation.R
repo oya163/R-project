@@ -261,7 +261,6 @@ highlyCorrelated <- findCorrelation(corMat, cutoff=0.50)
 highlyCorrelated
 
 #------------MODELLING SECTION-------------
-
 sanit_model_all <- lm(TimeTaken~Population + White + 
                         Blk_AfAm + Pop_dens + Housing + 
                         Occupied + Vacant , data = sanit_table)
