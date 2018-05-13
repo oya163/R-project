@@ -106,6 +106,10 @@ ggplot(cleaning_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))
   labs(title = 'Highest time taking neighborhoods for cleaning SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
 
+ggsave(filename = "../Project/graphs/highest_tt_cleaning_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
 #-------LEAST TIME TAKEN----------
 cleaning_asc <- cleaning_avg[order(cleaning_avg$TimeTaken),]
 cleaning_low_time <- head(cleaning_asc, n=20)
@@ -117,6 +121,10 @@ ggplot(cleaning_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Lowest time taking neighborhood for cleaning', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
+
+ggsave(filename = "../Project/graphs/lowest_tt_cleaning_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #--------Mixture time taken-----------
 cleaning_mix_lowest <- head(cleaning_desc, n=5)
@@ -130,6 +138,10 @@ ggplot(cleaning_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest time taking neighborhood for cleaning', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
+
+ggsave(filename = "../Project/graphs/mix_tt_cleaning_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #------Number of neighborhood----------
 nrow(cleaning_asc)
@@ -151,6 +163,10 @@ ggplot(cleaning_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest Frequency neighborhood for cleaning') +
   scale_y_continuous(limits = c(0,2500))
+
+ggsave(filename = "../Project/graphs/freq_tt_cleaning_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 
 #-----------AFTER DATASET CREATION------------
@@ -201,15 +217,27 @@ ggplot(data = cleaning_dataset, mapping = aes(x = White, y = TimeTaken)) +
   labs(title = "Population vs TimeTaken White for cleaning srtype", y = "TimeTaken", x = "White population") + 
   theme_light()
 
+ggsave(filename = "../Project/graphs/cleaning_white_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
 ggplot(data = cleaning_dataset, mapping = aes(x = Blk_AfAm, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
   labs(title = "Population vs TimeTaken Black for cleaning srtype", y = "TimeTaken", x = "Black population") + 
   theme_light()
 
+ggsave(filename = "../Project/graphs/cleaning_black_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
 ggplot(data = cleaning_dataset, mapping = aes(x = Area, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
   labs(title = "Area vs TimeTaken for cleaning srtype", y = "TimeTaken", x = "Area") + 
   theme_light()
+
+ggsave(filename = "../Project/graphs/cleaning_area_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #-----------Cross validation-------------------
 library(caret)
