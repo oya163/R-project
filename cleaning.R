@@ -91,10 +91,11 @@ print(cleaning_avg[1], row.names = FALSE)
 # Print time taken only
 print(cleaning_avg[2], row.names = FALSE)
 
+
+#-------MOST TIME TAKEN----------
 cleaning_desc <- cleaning_avg[order(-cleaning_avg$TimeTaken),]
 cleaning_desc
 
-#-------MOST TIME TAKEN----------
 cleaning_high_time <- head(cleaning_desc, n=20)
 cleaning_high_time
 
@@ -102,7 +103,7 @@ ggplot(cleaning_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest time taking neighborhoods for cleaningholes SRType', x="Neighborhoods") +
+  labs(title = 'Highest time taking neighborhoods for cleaning SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
 
 #-------LEAST TIME TAKEN----------
@@ -114,7 +115,7 @@ ggplot(cleaning_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Lowest time taking neighborhood for cleaningholes', x="Neighborhoods") +
+  labs(title = 'Lowest time taking neighborhood for cleaning', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 #--------Mixture time taken-----------
@@ -127,7 +128,7 @@ ggplot(cleaning_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest time taking neighborhood for cleaningholes', x="Neighborhoods") +
+  labs(title = 'Highest/Lowest time taking neighborhood for cleaning', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
 
 #------Number of neighborhood----------
@@ -148,7 +149,7 @@ ggplot(cleaning_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest Frequency neighborhood for cleaningholes') +
+  labs(title = 'Highest/Lowest Frequency neighborhood for cleaning') +
   scale_y_continuous(limits = c(0,2500))
 
 
@@ -195,7 +196,7 @@ cleaning_model_area <- lm(TimeTaken~Area, data = cleaning_data)
 summary(cleaning_model_area)
 
 
-ggplot(data = cleaning_dataset, mapping = aes(x = Avg_white, y = TimeTaken)) + 
+ggplot(data = cleaning_dataset, mapping = aes(x = White, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
   labs(title = "Population vs TimeTaken White for cleaning srtype", y = "TimeTaken", x = "White population") + 
   theme_light()
@@ -228,5 +229,24 @@ summary(tt_model_normal_wht)
 
 tt_model <- train(TimeTaken~Population, data=sanit_data, trControl=train_control, method="lm")
 summary(tt_model)
+
+
+#-------------MORE VISUALIZATION--------------------
+names(cleaning_data)
+cleaning_graph <- subset(cleaning_data, select = c(1,3,4,8))
+
+cleaning_desc <- cleaning_graph[order(-cleaning_graph$TimeTaken),]
+cleaning_desc
+
+cleaning_high_time <- head(cleaning_desc, n=20)
+cleaning_high_time
+
+# Working on visualization with request_count/white/black population vs timetaken
+ggplot(cleaning_high_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken, fill=Blk_AfAm))+
+  geom_bar(stat='identity', width = 0.5) + theme_bw() + 
+  geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
+  labs(title = 'Highest/Lowest time taking neighborhood for cleaning', x="Neighborhoods") +
+  scale_y_continuous(limits = c(0,2355)) 
 
 
