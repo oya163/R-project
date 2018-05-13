@@ -4,7 +4,7 @@
 # Link - https://data.baltimorecity.gov/City-Services/311-Customer-Service-Requests/9agw-sxsr
 # Description - 
 #   Performing Data wrangling for various SRTypes
-#   Performing regression/classification/clustering analysis
+#   Performing regression analysis
 #   
 # Course - Data Analaysis and Machine Learning (DATA 602)
 # Due Date - 2nd week of May, 2018
@@ -56,93 +56,93 @@ data_311[!complete.cases(data_311),]
 
 #----------------Data based on SRType SANITATION------------
 # Take only HCD-Sanitation Property with status CLOSED
-srtype_pot <- filter(data_311, SRType == "BGE-StLight(s) Out" & SRStatus == "CLOSED")
-summary(srtype_pot)
+srtype_light <- filter(data_311, SRType == "BGE-StLight(s) Out" & SRStatus == "CLOSED")
+summary(srtype_light)
 
 # Calculate time take
-createdDate <- mdy_hms(srtype_pot$CreatedDate, tz = "America/New_York")
-statusDate <- mdy_hms(srtype_pot$StatusDate, tz = "America/New_York")
+createdDate <- mdy_hms(srtype_light$CreatedDate, tz = "America/New_York")
+statusDate <- mdy_hms(srtype_light$StatusDate, tz = "America/New_York")
 TimeTaken = interval(createdDate, statusDate)/dhours()    # interval in hours
-srtype_pot$TimeTaken <- TimeTaken
+srtype_light$TimeTaken <- TimeTaken
 
-names(srtype_pot)
-glimpse(srtype_pot)
-nrow(srtype_pot)    # --32575
+names(srtype_light)
+glimpse(srtype_light)
+nrow(srtype_light)    # --32575
 
-#-----------------START POTHOLES--------------------
-pot_var <- c("TimeTaken","Neighborhood")
-pot_table <- srtype_pot[pot_var]
-names(pot_table)
-nrow(pot_table)
-glimpse(pot_table)
+#-----------------START lightHOLES--------------------
+light_var <- c("TimeTaken","Neighborhood")
+light_table <- srtype_light[light_var]
+names(light_table)
+nrow(light_table)
+glimpse(light_table)
 
 
 # Get the mean of time taken for each neighborhood
-pot_avg <- aggregate(TimeTaken ~ Neighborhood, pot_table, mean)
+light_avg <- aggregate(TimeTaken ~ Neighborhood, light_table, mean)
 
 # Print neighborhood only
-print(pot_avg[1], row.names = FALSE)
+print(light_avg[1], row.names = FALSE)
 
 # Print time taken only
-print(pot_avg[2], row.names = FALSE)
+print(light_avg[2], row.names = FALSE)
 
-pot_desc <- pot_avg[order(-pot_avg$TimeTaken),]
+light_desc <- light_avg[order(-light_avg$TimeTaken),]
 
 #-------MOST TIME TAKEN----------
-pot_high_time <- head(pot_desc, n=20)
-pot_high_time
+light_high_time <- head(light_desc, n=20)
+light_high_time
 
-ggplot(pot_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
+ggplot(light_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest time taking neighborhoods for Potholes SRType', x="Neighborhoods") +
+  labs(title = 'Highest time taking neighborhoods for lightholes SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 #-------LEAST TIME TAKEN----------
-pot_asc <- pot_avg[order(pot_avg$TimeTaken),]
-pot_low_time <- head(pot_asc, n=20)
-pot_low_time
+light_asc <- light_avg[order(light_avg$TimeTaken),]
+light_low_time <- head(light_asc, n=20)
+light_low_time
 
-ggplot(pot_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
+ggplot(light_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Lowest time taking neighborhood for potholes', x="Neighborhoods") +
+  labs(title = 'Lowest time taking neighborhood for lightholes', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 #--------Mixture time taken-----------
-pot_mix_lowest <- head(pot_desc, n=5)
-pot_mix_highest <- head(pot_asc, n=5)
+light_mix_lowest <- head(light_desc, n=5)
+light_mix_highest <- head(light_asc, n=5)
 
-pot_mix <- rbind(pot_mix_lowest, pot_mix_highest)
+light_mix <- rbind(light_mix_lowest, light_mix_highest)
 
-ggplot(pot_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
+ggplot(light_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest time taking neighborhood for potholes', x="Neighborhoods") +
+  labs(title = 'Highest/Lowest time taking neighborhood for lightholes', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 #------Number of neighborhood----------
-nrow(pot_asc)
+nrow(light_asc)
 
 #-----Display neighbordhood having highest/lowest frequency---------------
-pot_freq <- aggregate(TimeTaken~Neighborhood, pot_table, FUN=length)
-colnames(pot_freq)[2] <- "Count"
-pot_sort <- pot_freq[order(-pot_freq$Count),]
+light_freq <- aggregate(TimeTaken~Neighborhood, light_table, FUN=length)
+colnames(light_freq)[2] <- "Count"
+light_sort <- light_freq[order(-light_freq$Count),]
 
-pot_high_freq <- head(pot_sort,10)
-pot_low_freq <- tail(pot_sort,10)
+light_high_freq <- head(light_sort,10)
+light_low_freq <- tail(light_sort,10)
 
-pot_mix_freq <- rbind(pot_low_freq, pot_high_freq)
-pot_mix_freq
+light_mix_freq <- rbind(light_low_freq, light_high_freq)
+light_mix_freq
 
-ggplot(pot_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
+ggplot(light_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest Frequency neighborhood for potholes') +
+  labs(title = 'Highest/Lowest Frequency neighborhood for lightholes') +
   scale_y_continuous(limits = c(0,820))
 
 
@@ -168,32 +168,32 @@ print(crime_freq[2], row.names = FALSE)
 crime_freq
 
 
-#-----------After dataset creation------------
+#-----------AFTER DATASET CREATION------------
 library(MASS)
 light_data <- read_excel('Population_By_Neighborhood.xlsx', sheet = 'light_table')
 names(light_data)
 nrow(light_data)
 
+# Remove rows having population less than 100
 light_data <- light_data[!(light_data$Population <= 100), ]
 nrow(light_data)
 
-pot_model_all <- lm(TimeTaken~Population + White + 
+light_model_all <- lm(TimeTaken~Population + White + 
                       Blk_AfAm + Pop_dens + Housing + 
                       Occupied + Vacant , data = light_data)
-summary(pot_model_all)
+summary(light_model_all)
 
-pot_model_crime<- lm(TimeTaken~Crime_frequency, data = light_data)
-summary(pot_model_crime)
+light_model_crime<- lm(TimeTaken~Population+Crime_count, data = light_data)
+summary(light_model_crime)
 
+light_model_pop <- lm(TimeTaken~Population, data = light_data)
+summary(light_model_pop)
 
-pot_model_pop <- lm(TimeTaken~Population, data = light_data)
-summary(pot_model_pop)
+light_model_black <- lm(TimeTaken~Blk_AfAm, data = light_data)
+summary(light_model_black)
 
-pot_model_black <- lm(TimeTaken~Blk_AfAm, data = light_data)
-summary(pot_model_black)
-
-pot_model_white <- lm(TimeTaken~White, data = light_data)
-summary(pot_model_white)
+light_model_white <- lm(TimeTaken~White, data = light_data)
+summary(light_model_white)
 
 #-----------Cross validation-------------------
 library(caret)
