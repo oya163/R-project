@@ -253,8 +253,9 @@ names(sanit_table)
 corMat <- cor(sanit_table[2:10])
 corMat
 remove(corMat)
-# test_sanit_data <- subset(light_data, select = c(2,11,12,13))
-test_sanit_data <- subset(sanit_table, select = c(2,4,5,10))
+
+test_sanit_data <- subset(light_data, select = c(2,11,12,13))
+# test_sanit_data <- subset(sanit_table, select = c(2,4,5,10))
 corMat <- cor(test_sanit_data)
 corMat
 highlyCorrelated <- findCorrelation(corMat, cutoff=0.50)
@@ -282,6 +283,41 @@ ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
   labs(title = "Population vs TimeTaken Black_AfAm", y = "TimeTaken", x = "Population") + 
   theme_light()
 
+sanit_simple_model <- lm(TimeTaken~Blk_AfAm, data=sanit_data)
+summary(sanit_simple_model)
+
+sanit_quadratic_model <- lm(TimeTaken~Blk_AfAm + I(Blk_AfAm^2), data=sanit_data)
+summary(sanit_quadratic_model)
+
+# Plot actual vs fitted values
+ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
+  geom_point(color = "#006EA1") + 
+  geom_point(aes(x=Blk_AfAm, y=sanit_simple_model$fitted.values), color="black" , shape=5) +
+  geom_smooth(method = "gam", formula = y~poly(x, 1), se = FALSE, color = "orange") +
+  geom_smooth(method = "gam", formula = y~poly(x, 2), se = FALSE, color = "red") +
+  geom_smooth(method = "gam", formula = y~poly(x, 3), se = FALSE, color = "blue") +
+  labs(title = "Population vs TimeTaken Black for sanitation SRType", y = "TimeTaken", 
+       x = "Black Population") + 
+  theme_light()
+
+ggsave(filename = "../Project/graphs/sanit_black_lm_poly.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
+ggplot(data = sanit_table, mapping = aes(x = White, y = TimeTaken)) + 
+  # geom_line(aes(x=Blk_AfAm, y=sanit_quadratic_model$fitted.values), color="red") +
+  # geom_line(aes(x=Blk_AfAm, y=sanit_simple_model$fitted.values), color="blue") +
+  geom_point(color = "#006EA1") + 
+  geom_smooth(method = "lm", formula = y~poly(x, 1), se = FALSE, color = "orange") +
+  # geom_smooth(method = "lm", formula = y~poly(x, 2), se = FALSE, color = "orange") +
+  labs(title = "Population vs TimeTaken White for sanitation SRType", y = "TimeTaken", 
+       x = "White Population") + 
+  theme_light()
+
+ggsave(filename = "../Project/graphs/sanit_white_lm_poly.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
 
 names(sanit_table)
 # Correlation between variables
@@ -292,6 +328,67 @@ names(light_data)
 cor(light_data[2:10])
 
 
+#-----------SVR for Blk_AfAm----------------------
+names(sanit_data)
+sanit_svr_data <- subset(sanit_data, select=c(5,2))
+plot(sanit_svr_data, pch=16)
+
+sanit_lm_model <- lm(TimeTaken ~Blk_AfAm, sanit_svr_data)
+abline(sanit_lm_model)
+
+predictY <- predict(sanit_lm_model, sanit_svr_data)
+
+points(sanit_svr_data$Blk_AfAm, predictY, col="blue", pch=4)
+
+rmse <- function(error)
+{
+  sqrt(mean(error^2))
+}
+
+error <- sanit_lm_model$residuals  # same as data$Y - predictedY
+predictionRMSE <- rmse(error)   # 50.80559
+predictionRMSE
+
+library(e1071)
+sanit_svm_model <- svm(TimeTaken~Blk_AfAm, sanit_svr_data)
+predictedY <- predict(sanit_svm_model, sanit_svr_data)
+points(sanit_svr_data$Blk_AfAm, predictedY, col = "red", pch=4)
+
+error <- sanit_svr_data$TimeTaken - predictedY
+svrPredictionRMSE <- rmse(error)
+svrPredictionRMSE
+
+#-----------SVR for Population----------------------
+names(sanit_data)
+remove(sanit_svr_data)
+sanit_svr_data <- subset(sanit_data, select=c(3,2))
+plot(sanit_svr_data, pch=16)
+
+sanit_lm_model <- lm(TimeTaken~Population, sanit_svr_data)
+abline(sanit_lm_model)
+
+predictY <- predict(sanit_lm_model, sanit_svr_data)
+
+points(sanit_svr_data$Population, predictY, col="blue", pch=4)
+
+rmse <- function(error)
+{
+  sqrt(mean(error^2))
+}
+
+error <- sanit_lm_model$residuals  # same as data$Y - predictedY
+predictionRMSE <- rmse(error)   # 50.80559
+predictionRMSE
+
+library(e1071)
+sanit_svm_model <- svm(TimeTaken~Population, sanit_svr_data)
+predictedY <- predict(sanit_svm_model, sanit_svr_data)
+points(sanit_svr_data$Population, predictedY, col = "red", pch=4)
+
+error <- sanit_svr_data$TimeTaken - predictedY
+svrPredictionRMSE <- rmse(error)
+svrPredictionRMSE
+
 
 #-----------Cross validation-------------------
 library(caret)
@@ -300,34 +397,37 @@ library(caret)
 sanit_data <- data.frame(sanit_table[sample(1:nrow(sanit_table)),])
 
 glimpse(sanit_data)
-sanit_data$normal_pop <- scale(sanit_data[2], center = TRUE, scale = TRUE)
-sanit_data$normal_white <- scale(sanit_data[3], center = TRUE, scale = TRUE)
-sanit_data$normal_black <- scale(sanit_data[4], center = TRUE, scale = TRUE)
-glimpse(sanit_data)
-
-ggplot(data = sanit_data, mapping = aes(x = normal_white, y = TimeTaken)) + 
-  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken White", y = "TimeTaken", x = "White population") + 
-  theme_light()
-
-ggplot(data = sanit_data, mapping = aes(x = normal_black, y = TimeTaken)) + 
-  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Black population") + 
-  theme_light()
 
 # Define train control for k fold cross validation
 train_control <- trainControl(method="cv", number=5)
 
-tt_model_normal_blk <- train(TimeTaken~normal_black, data=sanit_data, trControl=train_control, method="lm")
-summary(tt_model_normal_blk)
+tt_sanit_model_blk <- train(TimeTaken~Avg_black, data=sanit_data, trControl=train_control, method="lm")
+summary(tt_sanit_model_blk)
 
-tt_model_normal_wht <- train(TimeTaken~normal_white, data=sanit_data, trControl=train_control, method="lm")
-summary(tt_model_normal_wht)
+ggplot(data = sanit_table, mapping = aes(x = Avg_black, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + 
+  geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Population") + 
+  theme_light()
+
+tt_sanit_model_wht <- train(TimeTaken~Avg_white, data=sanit_data, trControl=train_control, method="lm")
+summary(tt_sanit_model_wht)
+
+ggplot(data = sanit_table, mapping = aes(x = Avg_white, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Population vs TimeTaken Whote", y = "TimeTaken", x = "Population") + 
+  theme_light()
 
 names(sanit_data)
 
-tt_model <- train(TimeTaken~Population, data=sanit_data, trControl=train_control, method="lm")
-summary(tt_model)
+plot(sanit_data[c(4,2)])
+x11()
+plot(sanit_data[c(5,2)])
+
+sanit_quadratic_model <- train(TimeTaken~Avg_black + I(Avg_black^2), data=sanit_data, trControl=train_control, method="lm")
+summary(sanit_quadratic_model)
+
+
 
 #-----------Support Vector Regression-------------------
 library(e1071)
