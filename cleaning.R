@@ -92,6 +92,7 @@ print(cleaning_avg[1], row.names = FALSE)
 print(cleaning_avg[2], row.names = FALSE)
 
 cleaning_desc <- cleaning_avg[order(-cleaning_avg$TimeTaken),]
+cleaning_desc
 
 #-------MOST TIME TAKEN----------
 cleaning_high_time <- head(cleaning_desc, n=20)
@@ -102,7 +103,7 @@ ggplot(cleaning_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Highest time taking neighborhoods for cleaningholes SRType', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,450)) 
+  scale_y_continuous(limits = c(0,2355)) 
 
 #-------LEAST TIME TAKEN----------
 cleaning_asc <- cleaning_avg[order(cleaning_avg$TimeTaken),]
@@ -127,7 +128,7 @@ ggplot(cleaning_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest time taking neighborhood for cleaningholes', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,450)) 
+  scale_y_continuous(limits = c(0,2355)) 
 
 #------Number of neighborhood----------
 nrow(cleaning_asc)
@@ -148,29 +149,7 @@ ggplot(cleaning_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest Frequency neighborhood for cleaningholes') +
-  scale_y_continuous(limits = c(0,820))
-
-
-#----------CRIME DATASET---------------------
-crime_data <- read.csv('BPD_Part_1_Victim_Based_Crime_Data.csv')
-names(crime_data)
-crime_freq <- data.frame(crime_data %>% group_by(Neighborhood) %>% tally())
-colnames(crime_freq)[1] <- "Neighborhood"
-colnames(crime_freq)[2] <- "Count"
-
-nrow(crime_freq)
-head(crime_freq)
-
-# Remove empty rows
-crime_freq <- crime_freq[!apply(crime_freq[1] == "", 1, all),]
-nrow(crime_freq)
-head(crime_freq)
-
-# Print neighborhood and crime_count separately
-print(crime_freq[1], row.names = FALSE)
-print(crime_freq[2], row.names = FALSE)
-
-crime_freq
+  scale_y_continuous(limits = c(0,2500))
 
 
 #-----------AFTER DATASET CREATION------------
@@ -183,49 +162,53 @@ nrow(cleaning_data)
 cleaning_data <- cleaning_data[!(cleaning_data$Population <= 100), ]
 nrow(cleaning_data)
 
+# Create average columns
+cleaning_data <- cleaning_data %>% mutate(Avg_white=White/Population)
+cleaning_data <- cleaning_data %>% mutate(Avg_black=Blk_AfAm/Population)
+cleaning_data <- cleaning_data %>% mutate(Avg_crime=Crime/Population)
+head(cleaning_data)
 
 #------------FINDING CORRELATION---------------
 names(cleaning_data)
-cor(cleaning_data[2:10])
+cor(cleaning_data[8:11])
+
+test_data <- subset(cleaning_data, select = c(8,9,10,11))
+cor(test_data)
 
 
 #------------MODEL CREATION---------------
-
-cleaning_model_all <- lm(TimeTaken~Population + White + 
-                        Blk_AfAm + Pop_dens + Housing + 
-                        Occupied + Vacant + Crime_count , data = cleaning_data)
-summary(cleaning_model_all)
-
-cleaning_model_crime<- lm(TimeTaken~Population + Crime + Blk_AfAm, data = cleaning_data)
-summary(cleaning_model_crime)
-
-cleaning_model_pop <- lm(TimeTaken~Population, data = cleaning_data)
-summary(cleaning_model_pop)
-
-cleaning_model_black <- lm(TimeTaken~Blk_AfAm, data = cleaning_data)
-summary(cleaning_model_black)
-
-cleaning_model_white <- lm(TimeTaken~White, data = cleaning_data)
-summary(cleaning_model_white)
-
 # Shuffle data
 cleaning_dataset <- data.frame(cleaning_data[sample(1:nrow(cleaning_data)),])
 glimpse(cleaning_dataset)
 
-cleaning_dataset$normal_pop <- scale(cleaning_dataset[3], center = TRUE, scale = TRUE)
-cleaning_dataset$normal_white <- scale(cleaning_dataset[4], center = TRUE, scale = TRUE)
-cleaning_dataset$normal_black <- scale(cleaning_dataset[5], center = TRUE, scale = TRUE)
-glimpse(cleaning_dataset)
+cleaning_model_all <- lm(TimeTaken~Area + Avg_white + 
+                           Avg_black + Avg_crime, data = cleaning_data)
+summary(cleaning_model_all)
 
-ggplot(data = cleaning_dataset, mapping = aes(x = White, y = TimeTaken)) + 
+cleaning_model_black <- lm(TimeTaken~Avg_black, data = cleaning_data)
+summary(cleaning_model_black)
+
+cleaning_model_white <- lm(TimeTaken~Avg_white, data = cleaning_data)
+summary(cleaning_model_white)
+
+cleaning_model_area <- lm(TimeTaken~Area, data = cleaning_data)
+summary(cleaning_model_area)
+
+
+ggplot(data = cleaning_dataset, mapping = aes(x = Avg_white, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken White", y = "TimeTaken", x = "White population") + 
-  theme_cleaning()
+  labs(title = "Population vs TimeTaken White for cleaning srtype", y = "TimeTaken", x = "White population") + 
+  theme_light()
 
 ggplot(data = cleaning_dataset, mapping = aes(x = Blk_AfAm, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Black population") + 
-  theme_cleaning()
+  labs(title = "Population vs TimeTaken Black for cleaning srtype", y = "TimeTaken", x = "Black population") + 
+  theme_light()
+
+ggplot(data = cleaning_dataset, mapping = aes(x = Area, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Area vs TimeTaken for cleaning srtype", y = "TimeTaken", x = "Area") + 
+  theme_light()
 
 #-----------Cross validation-------------------
 library(caret)
@@ -234,14 +217,11 @@ glimpse(cleaning_dataset)
 # Define train control for k fold cross validation
 train_control <- trainControl(method="cv", number=5)
 
-tt_cleaning_model <- train(TimeTaken~Population, data=cleaning_dataset, trControl=train_control, method="lm")
-summary(tt_cleaning_model)
+tt_cleaning_model_cv_white <- train(TimeTaken~Avg_white, data=cleaning_dataset, trControl=train_control, method="lm")
+summary(tt_cleaning_model_cv_white)
 
-testPop <- data.frame(Population=cleaning_dataset[3])
-predict(tt_cleaning_model, testPop)
-
-tt_model_normal_blk <- train(TimeTaken~normal_black, data=cleaning_dataset, trControl=train_control, method="lm")
-summary(tt_model_normal_blk)
+tt_cleaning_model_cv_blk <- train(TimeTaken~Avg_black, data=cleaning_dataset, trControl=train_control, method="lm")
+summary(tt_cleaning_model_cv_blk)
 
 tt_model_normal_wht <- train(TimeTaken~normal_white, data=cleaning_dataset, trControl=train_control, method="lm")
 summary(tt_model_normal_wht)

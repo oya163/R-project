@@ -178,10 +178,19 @@ nrow(light_data)
 light_data <- light_data[!(light_data$Population <= 100), ]
 nrow(light_data)
 
+# Create average columns
+light_data <- light_data %>% mutate(Avg_white=White/Population)
+light_data <- light_data %>% mutate(Avg_black=Blk_AfAm/Population)
+light_data <- light_data %>% mutate(Avg_crime=Crime/Population)
+head(light_data)
 
 #------------FINDING CORRELATION---------------
 names(light_data)
 cor(light_data[2:10])
+
+# test_light_data <- subset(light_data, select = c(2,11,12,13))
+test_light_data <- subset(light_data, select = c(2,4,5,10))
+cor(test_light_data)
 
 
 #------------MODEL CREATION---------------

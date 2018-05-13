@@ -238,6 +238,30 @@ library(MASS)
 sanit_table <- read_excel('Population_By_Neighborhood.xlsx', sheet = 'sanit_table')
 names(sanit_table)
 
+# Remove rows having population less than 100
+sanit_table <- sanit_table[!(sanit_table$Population <= 100), ]
+nrow(sanit_table)
+
+# Create average columns
+sanit_table <- sanit_table %>% mutate(Avg_white=White/Population)
+sanit_table <- sanit_table %>% mutate(Avg_black=Blk_AfAm/Population)
+sanit_table <- sanit_table %>% mutate(Avg_crime=Crime/Population)
+head(sanit_table)
+
+#------------FINDING CORRELATION---------------
+names(sanit_table)
+corMat <- cor(sanit_table[2:10])
+corMat
+remove(corMat)
+# test_sanit_data <- subset(light_data, select = c(2,11,12,13))
+test_sanit_data <- subset(sanit_table, select = c(2,4,5,10))
+corMat <- cor(test_sanit_data)
+corMat
+highlyCorrelated <- findCorrelation(corMat, cutoff=0.50)
+highlyCorrelated
+
+#------------MODELLING SECTION-------------
+
 sanit_model_all <- lm(TimeTaken~Population + White + 
                         Blk_AfAm + Pop_dens + Housing + 
                         Occupied + Vacant , data = sanit_table)
