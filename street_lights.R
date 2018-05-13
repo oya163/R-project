@@ -69,7 +69,7 @@ names(srtype_light)
 glimpse(srtype_light)
 nrow(srtype_light)    # --32575
 
-#-----------------START lightHOLES--------------------
+#-----------------START STREET LIGHTS--------------------
 light_var <- c("TimeTaken","Neighborhood")
 light_table <- srtype_light[light_var]
 names(light_table)
@@ -180,10 +180,10 @@ nrow(light_data)
 
 light_model_all <- lm(TimeTaken~Population + White + 
                       Blk_AfAm + Pop_dens + Housing + 
-                      Occupied + Vacant , data = light_data)
+                      Occupied + Vacant + Crime_count , data = light_data)
 summary(light_model_all)
 
-light_model_crime<- lm(TimeTaken~Population+Crime_count, data = light_data)
+light_model_crime<- lm(TimeTaken~Crime_count, data = light_data)
 summary(light_model_crime)
 
 light_model_pop <- lm(TimeTaken~Population, data = light_data)
@@ -195,9 +195,6 @@ summary(light_model_black)
 light_model_white <- lm(TimeTaken~White, data = light_data)
 summary(light_model_white)
 
-#-----------Cross validation-------------------
-library(caret)
-
 # Shuffle data
 light_dataset <- data.frame(light_data[sample(1:nrow(light_data)),])
 glimpse(light_dataset)
@@ -207,12 +204,36 @@ light_dataset$normal_white <- scale(light_dataset[4], center = TRUE, scale = TRU
 light_dataset$normal_black <- scale(light_dataset[5], center = TRUE, scale = TRUE)
 glimpse(light_dataset)
 
-ggplot(data = light_dataset, mapping = aes(x = normal_white, y = TimeTaken)) + 
+ggplot(data = light_dataset, mapping = aes(x = White, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
   labs(title = "Population vs TimeTaken White", y = "TimeTaken", x = "White population") + 
   theme_light()
 
-ggplot(data = light_dataset, mapping = aes(x = normal_black, y = TimeTaken)) + 
+ggplot(data = light_dataset, mapping = aes(x = Blk_AfAm, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
   labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Black population") + 
   theme_light()
+
+#-----------Cross validation-------------------
+library(caret)
+glimpse(light_dataset)
+
+# Define train control for k fold cross validation
+train_control <- trainControl(method="cv", number=5)
+
+tt_light_model <- train(TimeTaken~Population, data=light_dataset, trControl=train_control, method="lm")
+summary(tt_light_model)
+
+testPop <- data.frame(Population=light_dataset[3])
+predict(tt_light_model, testPop)
+
+tt_model_normal_blk <- train(TimeTaken~normal_black, data=light_dataset, trControl=train_control, method="lm")
+summary(tt_model_normal_blk)
+
+tt_model_normal_wht <- train(TimeTaken~normal_white, data=light_dataset, trControl=train_control, method="lm")
+summary(tt_model_normal_wht)
+
+tt_model <- train(TimeTaken~Population, data=sanit_data, trControl=train_control, method="lm")
+summary(tt_model)
+
+
