@@ -178,12 +178,20 @@ nrow(light_data)
 light_data <- light_data[!(light_data$Population <= 100), ]
 nrow(light_data)
 
+
+#------------FINDING CORRELATION---------------
+names(light_data)
+cor(light_data[2:10])
+
+
+#------------MODEL CREATION---------------
+
 light_model_all <- lm(TimeTaken~Population + White + 
                       Blk_AfAm + Pop_dens + Housing + 
                       Occupied + Vacant + Crime_count , data = light_data)
 summary(light_model_all)
 
-light_model_crime<- lm(TimeTaken~Crime_count, data = light_data)
+light_model_crime<- lm(TimeTaken~Population + Crime + Blk_AfAm, data = light_data)
 summary(light_model_crime)
 
 light_model_pop <- lm(TimeTaken~Population, data = light_data)
