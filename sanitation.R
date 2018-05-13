@@ -260,8 +260,13 @@ ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
   theme_light()
 
 
+names(sanit_table)
 # Correlation between variables
-cor(sanit_table[2:5], sanit_table[2:5])
+cor(sanit_table[2:10], sanit_table[2:10])
+
+#------------FINDING CORRELATION---------------
+names(light_data)
+cor(light_data[2:10])
 
 
 
