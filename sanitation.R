@@ -283,8 +283,11 @@ ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
   labs(title = "Population vs TimeTaken Black_AfAm", y = "TimeTaken", x = "Population") + 
   theme_light()
 
-sanit_simple_model <- lm(TimeTaken~Blk_AfAm, data=sanit_data)
-summary(sanit_simple_model)
+sanit_black_model <- lm(TimeTaken~Blk_AfAm, data=sanit_data)
+summary(sanit_black_model)
+
+sanit_white_model <- lm(TimeTaken~White, data=sanit_data)
+summary(sanit_white_model)
 
 sanit_quadratic_model <- lm(TimeTaken~Blk_AfAm + I(Blk_AfAm^2), data=sanit_data)
 summary(sanit_quadratic_model)
@@ -292,7 +295,7 @@ summary(sanit_quadratic_model)
 # Plot actual vs fitted values
 ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
   geom_point(color = "#006EA1") + 
-  geom_point(aes(x=Blk_AfAm, y=sanit_simple_model$fitted.values), color="black" , shape=5) +
+  geom_point(aes(x=Blk_AfAm, y=sanit_black_model$fitted.values), color="black" , shape=5) +
   geom_smooth(method = "gam", formula = y~poly(x, 1), se = FALSE, color = "orange") +
   geom_smooth(method = "gam", formula = y~poly(x, 2), se = FALSE, color = "red") +
   geom_smooth(method = "gam", formula = y~poly(x, 3), se = FALSE, color = "blue") +
@@ -305,11 +308,11 @@ ggsave(filename = "../Project/graphs/sanit_black_lm_poly.png", plot = last_plot(
        units = "in", dpi = 300)
 
 ggplot(data = sanit_table, mapping = aes(x = White, y = TimeTaken)) + 
-  # geom_line(aes(x=Blk_AfAm, y=sanit_quadratic_model$fitted.values), color="red") +
-  # geom_line(aes(x=Blk_AfAm, y=sanit_simple_model$fitted.values), color="blue") +
+  geom_point(aes(x=White, y=sanit_white_model$fitted.values), color="black" , shape=5) +
   geom_point(color = "#006EA1") + 
-  geom_smooth(method = "lm", formula = y~poly(x, 1), se = FALSE, color = "orange") +
-  # geom_smooth(method = "lm", formula = y~poly(x, 2), se = FALSE, color = "orange") +
+  geom_smooth(method = "gam", formula = y~poly(x, 1), se = FALSE, color = "orange") +
+  geom_smooth(method = "gam", formula = y~poly(x, 2), se = FALSE, color = "red") +
+  geom_smooth(method = "gam", formula = y~poly(x, 3), se = FALSE, color = "blue") +
   labs(title = "Population vs TimeTaken White for sanitation SRType", y = "TimeTaken", 
        x = "White Population") + 
   theme_light()

@@ -99,6 +99,11 @@ ggplot(light_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
   labs(title = 'Highest time taking neighborhoods for lightholes SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
+ggsave(filename = "../Project/graphs/highest_tt_lights_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
+
 #-------LEAST TIME TAKEN----------
 light_asc <- light_avg[order(light_avg$TimeTaken),]
 light_low_time <- head(light_asc, n=20)
@@ -111,6 +116,10 @@ ggplot(light_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   labs(title = 'Lowest time taking neighborhood for lightholes', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
+ggsave(filename = "../Project/graphs/lowest_tt_lights_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
 #--------Mixture time taken-----------
 light_mix_lowest <- head(light_desc, n=5)
 light_mix_highest <- head(light_asc, n=5)
@@ -121,8 +130,12 @@ ggplot(light_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest time taking neighborhood for lightholes', x="Neighborhoods") +
+  labs(title = 'Highest/Lowest time taking neighborhood for light', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
+
+ggsave(filename = "../Project/graphs/mix_tt_lights_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #------Number of neighborhood----------
 nrow(light_asc)
@@ -142,8 +155,12 @@ ggplot(light_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest Frequency neighborhood for lightholes') +
+  labs(title = 'Highest/Lowest Frequency neighborhood for lights') +
   scale_y_continuous(limits = c(0,820))
+
+ggsave(filename = "../Project/graphs/freq_tt_lights_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 
 #----------CRIME DATASET---------------------
@@ -197,39 +214,51 @@ cor(test_light_data)
 
 light_model_all <- lm(TimeTaken~Population + White + 
                       Blk_AfAm + Pop_dens + Housing + 
-                      Occupied + Vacant + Crime_count , data = light_data)
+                      Occupied + Vacant + Crime , data = light_data)
 summary(light_model_all)
 
-light_model_crime<- lm(TimeTaken~Population + Crime + Blk_AfAm, data = light_data)
+light_model_crime<-lm(TimeTaken~Avg_crime, data = light_data)
 summary(light_model_crime)
 
-light_model_pop <- lm(TimeTaken~Population, data = light_data)
-summary(light_model_pop)
-
-light_model_black <- lm(TimeTaken~Blk_AfAm, data = light_data)
+light_model_black <-lm(TimeTaken~Avg_black, data = light_data)
 summary(light_model_black)
 
-light_model_white <- lm(TimeTaken~White, data = light_data)
+light_model_white <-lm(TimeTaken~Avg_white, data = light_data)
 summary(light_model_white)
 
 # Shuffle data
 light_dataset <- data.frame(light_data[sample(1:nrow(light_data)),])
 glimpse(light_dataset)
 
-light_dataset$normal_pop <- scale(light_dataset[3], center = TRUE, scale = TRUE)
-light_dataset$normal_white <- scale(light_dataset[4], center = TRUE, scale = TRUE)
-light_dataset$normal_black <- scale(light_dataset[5], center = TRUE, scale = TRUE)
-glimpse(light_dataset)
-
-ggplot(data = light_dataset, mapping = aes(x = White, y = TimeTaken)) + 
+#-----------LINEAR MODEL VISUALIZATION-------------------
+ggplot(data = light_dataset, mapping = aes(x = Avg_white, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken White", y = "TimeTaken", x = "White population") + 
+  labs(title = "Population vs TimeTaken in White Majority Neighborhoods", y = "TimeTaken", 
+       x = "% White population") + 
   theme_light()
 
-ggplot(data = light_dataset, mapping = aes(x = Blk_AfAm, y = TimeTaken)) + 
+ggsave(filename = "../Project/graphs/lights_white_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
+ggplot(data = light_dataset, mapping = aes(x = Avg_black, y = TimeTaken)) + 
   geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
-  labs(title = "Population vs TimeTaken Black", y = "TimeTaken", x = "Black population") + 
+  labs(title = "Population vs TimeTaken in African American Majority Neighborhoods", y = "TimeTaken", 
+       x = "% African American population") + 
   theme_light()
+
+ggsave(filename = "../Project/graphs/lights_black_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
+ggplot(data = light_dataset, mapping = aes(x = Crime, y = TimeTaken)) + 
+  geom_point(color = "#006EA1") + geom_smooth(method = "lm", se = FALSE, color = "orange") + 
+  labs(title = "Population vs TimeTaken Crime", y = "TimeTaken", x = "Crime Rate") + 
+  theme_light()
+
+ggsave(filename = "../Project/graphs/lights_crime_lm.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #-----------Cross validation-------------------
 library(caret)
