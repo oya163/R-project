@@ -96,7 +96,7 @@ ggplot(light_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest time taking neighborhoods for lightholes SRType', x="Neighborhoods") +
+  labs(title = 'Highest time taking neighborhoods for lights SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 ggsave(filename = "../Project/graphs/highest_tt_lights_srt.png", plot = last_plot(),
@@ -113,7 +113,7 @@ ggplot(light_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Lowest time taking neighborhood for lightholes', x="Neighborhoods") +
+  labs(title = 'Lowest time taking neighborhood for lights', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,450)) 
 
 ggsave(filename = "../Project/graphs/lowest_tt_lights_srt.png", plot = last_plot(),
