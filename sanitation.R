@@ -107,17 +107,61 @@ print(sanit_avg[2], row.names = FALSE)
 sanit_sort_desc <- sanit_avg[order(-sanit_avg$TimeTaken),]
 
 #-------MOST TIME TAKEN
-head(sanit_sort_desc, n=20)
+sanit_high_time <- head(sanit_sort_desc, n=20)
+sanit_high_time
+
+ggplot(sanit_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
+  geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
+  geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
+  labs(title = 'Highest time taking neighborhoods for Sanitation SRType', x="Neighborhoods") +
+  scale_y_continuous(limits = c(0,2355)) 
+
+ggsave(filename = "../Project/graphs/highest_tt_sanit_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #-------LEAST TIME TAKEN
 sanit_sort_asc <- sanit_avg[order(sanit_avg$TimeTaken),]
-head(sanit_sort_asc, n=20)
+sanit_low_time <- head(sanit_sort_asc, n=20)
+sanit_low_time
+
+ggplot(sanit_low_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
+  geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
+  geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
+  labs(title = 'Highest time taking neighborhoods for Sanitation SRType', x="Neighborhoods") +
+  scale_y_continuous(limits = c(0,2355)) 
+
+ggsave(filename = "../Project/graphs/lowest_tt_sanit_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #------Number of neighborhood
 nrow(sanit_sort_asc)
 
+#--------Mixture time taken-----------
+sanit_mix_lowest <- head(sanit_sort_desc, n=5)
+sanit_mix_highest <- head(sanit_sort_asc, n=5)
+
+sanit_mix <- rbind(sanit_mix_lowest, sanit_mix_highest)
+sanit_mix
+
+ggplot(sanit_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
+  geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
+  geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
+  labs(title = 'Highest/Lowest time taking neighborhood for sanitation', x="Neighborhoods") +
+  scale_y_continuous(limits = c(0,2355)) 
+
+ggsave(filename = "../Project/graphs/mix_tt_sanit_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
+
+
 #-----Display neighbordhood having highest frequency---------------
 sanit_table %>% group_by(sanit_table$Neighborhood) %>% tally(sort = TRUE) 
+
 
 # Add this to arrange in ascending order
 # %>% arrange(desc(-n))
@@ -283,11 +327,20 @@ ggplot(data = sanit_table, mapping = aes(x = Blk_AfAm, y = TimeTaken)) +
   labs(title = "Population vs TimeTaken Black_AfAm", y = "TimeTaken", x = "Population") + 
   theme_light()
 
-sanit_black_model <- lm(TimeTaken~Blk_AfAm, data=sanit_data)
-summary(sanit_black_model)
 
-sanit_white_model <- lm(TimeTaken~White, data=sanit_data)
+sanit_pop_model <- lm(TimeTaken~Population, data=sanit_data)
+summary(sanit_pop_model)
+plot(sanit_pop_model)
+
+#----------Black Model-----------------
+sanit_black_model <- lm(TimeTaken~Avg_black, data=sanit_data)
+summary(sanit_black_model)
+plot(sanit_black_model)
+
+#----------White Model-----------------
+sanit_white_model <- lm(TimeTaken~Avg_white, data=sanit_data)
 summary(sanit_white_model)
+plot(sanit_white_model)
 
 sanit_quadratic_model <- lm(TimeTaken~Blk_AfAm + I(Blk_AfAm^2), data=sanit_data)
 summary(sanit_quadratic_model)
@@ -336,7 +389,7 @@ names(sanit_data)
 sanit_svr_data <- subset(sanit_data, select=c(5,2))
 plot(sanit_svr_data, pch=16)
 
-sanit_lm_model <- lm(TimeTaken ~Blk_AfAm, sanit_svr_data)
+sanit_lm_model <- lm(TimeTaken ~Blk_Afm, sanit_svr_data)
 abline(sanit_lm_model)
 
 predictY <- predict(sanit_lm_model, sanit_svr_data)
@@ -368,6 +421,7 @@ sanit_svr_data <- subset(sanit_data, select=c(3,2))
 plot(sanit_svr_data, pch=16)
 
 sanit_lm_model <- lm(TimeTaken~Population, sanit_svr_data)
+summary(sanit_lm_model)
 abline(sanit_lm_model)
 
 predictY <- predict(sanit_lm_model, sanit_svr_data)
@@ -385,6 +439,7 @@ predictionRMSE
 
 library(e1071)
 sanit_svm_model <- svm(TimeTaken~Population, sanit_svr_data)
+summary(sanit_svm_model)
 predictedY <- predict(sanit_svm_model, sanit_svr_data)
 points(sanit_svr_data$Population, predictedY, col = "red", pch=4)
 
