@@ -92,7 +92,7 @@ ggplot(sanit_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Highest time taking neighborhoods for sanit SRType', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,2355)) 
+  scale_y_continuous(limits = c(0,400)) 
 
 ggsave(filename = "../Project/graphs/highest_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
@@ -108,7 +108,7 @@ ggplot(sanit_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Lowest time taking neighborhood for sanit', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,450)) 
+  scale_y_continuous(limits = c(0,400)) 
 
 ggsave(filename = "../Project/graphs/lowest_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
@@ -125,7 +125,7 @@ ggplot(sanit_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
   labs(title = 'Highest/Lowest time taking neighborhood for sanit', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,2355)) 
+  scale_y_continuous(limits = c(0,400)) 
 
 ggsave(filename = "../Project/graphs/mix_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
@@ -148,9 +148,9 @@ sanit_mix_freq
 ggplot(sanit_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest Frequency neighborhood for sanit') +
-  scale_y_continuous(limits = c(0,2500))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
+  labs(title = 'Highest/Lowest Frequency neighborhood for sanit', x='Neighborhood') +
+  scale_y_continuous(limits = c(0,4600))
 
 ggsave(filename = "../Project/graphs/freq_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
@@ -166,6 +166,7 @@ sanit_table %>% group_by(sanit_table$Neighborhood) %>% tally(sort = TRUE)
 #------------------SANITATION MODEL CREATION-----------------------
 sanitation <- read_excel('Population_By_Neighborhood.xlsx', sheet = 'sanitation')
 names(sanitation)
+
 glimpse(sanitation)
 
 fill_up_sanit <- function(vec, temp_sanit){
