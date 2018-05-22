@@ -18,7 +18,7 @@
 library(tidyverse)
 library(lubridate)
 library(readxl)
-setwd('../../DATA602/OpenBaltimore/')
+setwd('C:/Users/uttam/Documents/DATA602/OpenBaltimore/')
 data_311 <- read.csv('311_Customer_Service_Requests.csv')
 
 #---------View the headers---------
@@ -42,7 +42,7 @@ head(high_freq_srtype_order,n = 20)
 
 #----------------Check NULL values------------
 is.na(data_311)
-data_311[!complete.cases(data_311),]
+# data_311[!complete.cases(data_311),]
 
 
 #----------------Data based on SRType SANITATION------------
@@ -64,100 +64,97 @@ nrow(srtype_sanit)    # --150769
 
 #-----------------START SANITATION--------------------
 sanit_var <- c("TimeTaken","Neighborhood")
-sanit_table_final <- srtype_sanit[sanit_var]
-names(sanit_table_final)
-nrow(sanit_table_final)
-glimpse(sanit_table_final)
-
-
-# # Neighborhood of interest
-neighbor <- c("FRANKFORD", "BELAIR-EDISON", "CANTON", "BROOKLYN",
-              "SANDTOWN-WINCHESTER", "CHERRY HILL", "CHARLES VILLAGE",
-              "GLEN", "CHESWOLDE", "COLDSTREAM HOMESTEAD MONTEBELLO", "HAMPDEN")
-
-# neighbor <- c("FRANKFORD", "BELAIR-EDISON", "CANTON", "BROOKLYN",
-#               "SANDTOWN-WINCHESTER")
-
-sanit_table <- sanit_table_final[sanit_table_final$Neighborhood %in% neighbor,]
-sanit_table %>% group_by(Neighborhood) %>% tally()
-
-#-----------Convert neighborhood to factor and remove unused factor levels -----
-sanit_table$Neighborhood <- factor(sanit_table$Neighborhood)
-sanit_table$Neighborhood <- droplevels(sanit_table$Neighborhood)
-levels(sanit_table$Neighborhood)
-
-#-------Create Neighborhood a factor---------
-# sanit_table$Neighborhood <- str(sanit_table$Neighborhood)
-
-#-----CHECK NEIGHBOR of sanit_table_final------
-# only_neighbor <- sanit_table_final$Neighborhood %>% unique()
-# only_neighbor
-# length(only_neighbor)
-
-#-----CHECK NEIGHBOR of sanit_table------
-only_neighbor <- sanit_table$Neighborhood %>% unique()
-only_neighbor
-length(only_neighbor)
+sanit_table <- srtype_sanit[sanit_var]
+names(sanit_table)
+nrow(sanit_table)
+glimpse(sanit_table)
 
 
 # Get the mean of time taken for each neighborhood
 sanit_avg <- aggregate(TimeTaken ~ Neighborhood, sanit_table, mean)
-sanit_avg
-print(sanit_avg[2], row.names = FALSE)
-sanit_sort_desc <- sanit_avg[order(-sanit_avg$TimeTaken),]
 
-#-------MOST TIME TAKEN
-sanit_high_time <- head(sanit_sort_desc, n=20)
+# Print neighborhood only
+print(sanit_avg[1], row.names = FALSE)
+
+# Print time taken only
+print(sanit_avg[2], row.names = FALSE)
+
+
+#-------MOST TIME TAKEN----------
+sanit_desc <- sanit_avg[order(-sanit_avg$TimeTaken),]
+sanit_desc
+
+sanit_high_time <- head(sanit_desc, n=20)
 sanit_high_time
 
 ggplot(sanit_high_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest time taking neighborhoods for Sanitation SRType', x="Neighborhoods") +
+  labs(title = 'Highest time taking neighborhoods for sanit SRType', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
 
 ggsave(filename = "../Project/graphs/highest_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
        units = "in", dpi = 300)
 
-#-------LEAST TIME TAKEN
-sanit_sort_asc <- sanit_avg[order(sanit_avg$TimeTaken),]
-sanit_low_time <- head(sanit_sort_asc, n=20)
+#-------LEAST TIME TAKEN----------
+sanit_asc <- sanit_avg[order(sanit_avg$TimeTaken),]
+sanit_low_time <- head(sanit_asc, n=20)
 sanit_low_time
 
-ggplot(sanit_low_time,aes(x=reorder(Neighborhood, -TimeTaken), y=TimeTaken))+
+ggplot(sanit_low_time,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest time taking neighborhoods for Sanitation SRType', x="Neighborhoods") +
-  scale_y_continuous(limits = c(0,2355)) 
+  labs(title = 'Lowest time taking neighborhood for sanit', x="Neighborhoods") +
+  scale_y_continuous(limits = c(0,450)) 
 
 ggsave(filename = "../Project/graphs/lowest_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
        units = "in", dpi = 300)
 
-#------Number of neighborhood
-nrow(sanit_sort_asc)
-
 #--------Mixture time taken-----------
-sanit_mix_lowest <- head(sanit_sort_desc, n=5)
-sanit_mix_highest <- head(sanit_sort_asc, n=5)
+sanit_mix_lowest <- head(sanit_desc, n=5)
+sanit_mix_highest <- head(sanit_asc, n=5)
 
 sanit_mix <- rbind(sanit_mix_lowest, sanit_mix_highest)
-sanit_mix
 
 ggplot(sanit_mix,aes(x=reorder(Neighborhood, TimeTaken), y=TimeTaken))+
   geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
   geom_text(aes(label=round(TimeTaken,2)), colour="black", size=3, vjust=-0.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1,size=8)) +
-  labs(title = 'Highest/Lowest time taking neighborhood for sanitation', x="Neighborhoods") +
+  labs(title = 'Highest/Lowest time taking neighborhood for sanit', x="Neighborhoods") +
   scale_y_continuous(limits = c(0,2355)) 
 
 ggsave(filename = "../Project/graphs/mix_tt_sanit_srt.png", plot = last_plot(),
        width = 15, height = 7,
        units = "in", dpi = 300)
 
+#------Number of neighborhood----------
+nrow(sanit_asc)
+
+#-----Display neighbordhood having highest/lowest frequency---------------
+sanit_freq <- aggregate(TimeTaken~Neighborhood, sanit_table, FUN=length)
+colnames(sanit_freq)[2] <- "Count"
+sanit_sort <- sanit_freq[order(-sanit_freq$Count),]
+
+sanit_high_freq <- head(sanit_sort,10)
+sanit_low_freq <- tail(sanit_sort,10)
+
+sanit_mix_freq <- rbind(sanit_low_freq, sanit_high_freq)
+sanit_mix_freq
+
+ggplot(sanit_mix_freq,aes(x=reorder(Neighborhood, Count), y=Count))+
+  geom_bar(stat='identity', fill='orange', width = 0.5) + theme_bw() + 
+  geom_text(aes(label=Count), colour="black", size=3, vjust=-0.5) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1,size=8)) +
+  labs(title = 'Highest/Lowest Frequency neighborhood for sanit') +
+  scale_y_continuous(limits = c(0,2500))
+
+ggsave(filename = "../Project/graphs/freq_tt_sanit_srt.png", plot = last_plot(),
+       width = 15, height = 7,
+       units = "in", dpi = 300)
 
 #-----Display neighbordhood having highest frequency---------------
 sanit_table %>% group_by(sanit_table$Neighborhood) %>% tally(sort = TRUE) 
